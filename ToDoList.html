@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+
+        #taskInput {
+            width: 60%;
+            padding: 8px;
+            margin: 10px 0;
+        }
+
+        #addBtn {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        #taskList {
+            list-style: none;
+            padding: 0;
+        }
+
+        .taskItem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 5px;
+            cursor: grab;
+        }
+
+        .deleteBtn {
+            background-color: #ff6347;
+            color: #fff;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>To-Do List</h2>
+
+    <input type="text" id="taskInput" placeholder="Enter your task">
+    <button onclick="addTask()" id="addBtn">Add Task</button>
+
+    <ul id="taskList" class="sortable-list"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var sortable = new Sortable(document.getElementById('taskList'), {
+                animation: 150,
+                handle: '.taskItem',
+                onUpdate: function(evt) {
+                    saveTasks();
+                }
+            });
+
+            loadTasks();
+        });
+
+        function addTask() {
+            var taskInput = document.getElementById("taskInput");
+            var taskText = taskInput.value;
+
+            if (taskText.trim() !== "") {
+                var listItem = document.createElement("li");
+                listItem.className = "taskItem";
+
+                var taskSpan = document.createElement("span");
+                taskSpan.textContent = taskText;
+
+                var deleteBtn = document.createElement("button");
+                deleteBtn.className = "deleteBtn";
+                deleteBtn.textContent = "Delete";
+                deleteBtn.onclick = function() {
+                    listItem.remove();
+                    saveTasks();
+                };
+
+                listItem.appendChild(taskSpan);
+                listItem.appendChild(deleteBtn);
+
+                document.getElementById("taskList").appendChild(listItem);
+
+                taskInput.value = "";
+
+                saveTasks();
+            }
+        }
+
+        function saveTasks() {
+            var taskList = document.getElementById("taskList");
+            var tasks = Array.from(taskList.children).map(function(item, index) {
+                return { text: item.querySelector("span").textContent, order: index };
+            });
+
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            var storedTasks = localStorage.getItem("tasks");
+
+            if (storedTasks) {
+                var tasks = JSON.parse(storedTasks);
+
+                tasks.sort(function(a, b) {
+                    return a.order - b.order;
+                });
+
+                tasks.forEach(function(task) {
+                    var listItem = document.createElement("li");
+                    listItem.className = "taskItem";
+
+                    var taskSpan = document.createElement("span");
+                    taskSpan.textContent = task.text;
+
+                    var deleteBtn = document.createElement("button");
+                    deleteBtn.className = "deleteBtn";
+                    deleteBtn.textContent = "Delete";
+                    deleteBtn.onclick = function() {
+                        listItem.remove();
+                        saveTasks();
+                    };
+
+                    listItem.appendChild(taskSpan);
+                    listItem.appendChild(deleteBtn);
+
+                    document.getElementById("taskList").appendChild(listItem);
+                });
+            }
+        }
+    </script>
+
+</body>
+</html>

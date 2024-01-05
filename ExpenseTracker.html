@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #expenseTracker {
+            width: 300px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        #expensesList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .delete-button {
+            cursor: pointer;
+            color: red;
+            margin-left: 10px; /* Add some margin to the delete button */
+        }
+
+        /* Add some spacing between form elements */
+        #expenseForm label,
+        #expenseForm input,
+        #expenseForm select,
+        #expenseForm button {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="expenseTracker">
+    <h2>Total Expenses: $<span id="totalExpenses">0.00</span></h2>
+
+    <h3>Expenses</h3>
+    <ul id="expensesList"></ul>
+
+    <form id="expenseForm">
+        <label for="expenseName">Expense Name:</label>
+        <input type="text" id="expenseName" required>
+
+        <label for="expenseAmount">Expense Amount:</label>
+        <input type="number" id="expenseAmount" required>
+
+        <label for="expenseCategory">Expense Category:</label>
+        <select id="expenseCategory" required>
+            <option value="" disabled selected>Select or Add Category</option>
+        </select>
+
+        <label for="expenseDate">Expense Date:</label>
+        <input type="date" id="expenseDate" required>
+
+        <input type="text" id="newCategory" placeholder="New Category">
+
+        <button type="button" onclick="addExpense()">Add Expense</button>
+    </form>
+</div>
+
+<canvas id="categoryPieChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Function to check if local storage is supported
+    function isLocalStorageSupported() {
+        try {
+            localStorage.setItem('test', 'test');
+            localStorage.removeItem('test');
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // Expense data structure
+    const expenses = [];
+    const categories = [];
+
+    // Function to add expense
+    function addExpense() {
+        const expenseName = document.getElementById('expenseName').value;
+        const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
+        const expenseCategory = document.getElementById('expenseCategory').value || document.getElementById('newCategory').value;
+        const expenseDate = document.getElementById('expenseDate').value;
+
+        if (expenseName && !isNaN(expenseAmount) && expenseAmount > 0 && expenseCategory && expenseDate) {
+            // Add expense to the list
+            expenses.push({ name: expenseName, amount: expenseAmount, category: expenseCategory, date: expenseDate });
+
+            // Add category to the list if it doesn't exist
+            if (!categories.includes(expenseCategory)) {
+                categories.push(expenseCategory);
+                updateCategoryDropdown();
+            }
+
+            // Update the UI
+            updateUI();
+
+            // Save expenses to local storage
+            saveExpensesToLocalStorage();
+
+            // Clear the form
+            document.getElementById('expenseForm').reset();
+        } else {
+            alert('Please enter a valid expense name, amount, category, and date.');
+        }
+    }
+
+    // Function to update the category dropdown
+    function updateCategoryDropdown() {
+        const categoryDropdown = document.getElementById('expenseCategory');
+        const newCategoryInput = document.getElementById('newCategory');
+
+        // Clear existing options
+        categoryDropdown.innerHTML = '<option value="" disabled selected>Select or Add Category</option>';
+
+        // Add categories to the dropdown
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryDropdown.appendChild(option);
+        });
+
+        // Reset the new category input
+        newCategoryInput.value = '';
+    }
+
+    // Function to update the UI
+    function updateUI() {
+        const expensesList = document.getElementById('expensesList');
+        const totalExpenses = document.getElementById('totalExpenses');
+
+        // Order expenses by date in descending order (most recent first)
+        const sortedExpenses = expenses.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Clear the existing list
+        expensesList.innerHTML = '';
+
+        // Populate the list
+        let total = 0;
+        sortedExpenses.forEach((expense, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'expense-item';
+            listItem.innerHTML = `<span>${expense.name}</span><span>${expense.category}</span><span>$${expense.amount.toFixed(2)}</span><span>${expense.date}</span><span class="delete-button" onclick="deleteExpense(${index})">Delete</span>`;
+            expensesList.appendChild(listItem);
+
+            total += expense.amount;
+        });
+
+        // Update total expenses
+        totalExpenses.textContent = total.toFixed(2);
+    }
+
+    // Function to delete an expense
+    function deleteExpense(index) {
+        expenses.splice(index, 1);
+        updateUI();
+
+        // Save expenses to local storage after deletion
+        saveExpensesToLocalStorage();
+    }
+
+    // Function to save expenses to local storage
+    function saveExpensesToLocalStorage() {
+        if (isLocalStorageSupported()) {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+    }
+
+    // Function to load expenses from local storage
+    function loadExpensesFromLocalStorage() {
+        if (isLocalStorageSupported()) {
+            const storedExpenses = localStorage.getItem('expenses');
+            if (storedExpenses) {
+                expenses.push(...JSON.parse(storedExpenses));
+                updateUI();
+            }
+        }
+    }
+
+    // Initial update of the category dropdown
+    updateCategoryDropdown();
+
+    // Load expenses from local storage on page load
+    loadExpensesFromLocalStorage();
+</script>
+
+</body>
+</html>

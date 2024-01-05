@@ -4,11 +4,12 @@
 Hello! I'm Jerome
 
 ## Projects
-- To Do List: allows user to create a list of tasks to complete
-- Blog: user can write posts and add pictures 
+- To Do List: allows user to create a list of tasks to complete (JavaScript, HTML, CSS)
+- Blog: user can write posts and add pictures  (JavaScript, HTML, CSS)
+- Task Management System: add, update, delete and prioritise tasks (Python)
 
 ## Skills
-- Programming languages: JavaScript
+- Programming languages: JavaScript, Python
 - Tools: HTML, CSS
 
 ## Contact
